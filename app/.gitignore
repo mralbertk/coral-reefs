@@ -1,0 +1,8 @@
+# Folders
+.env
+.venv
+.idea
+*.iml
+
+# Filetypes
+*.jpg

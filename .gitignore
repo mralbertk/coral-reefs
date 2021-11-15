@@ -109,6 +109,10 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.env/
+.venv/
+.idea/
+.iml
 
 # Spyder project settings
 .spyderproject
@@ -127,3 +131,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Image files
+images/
+*.jpg
