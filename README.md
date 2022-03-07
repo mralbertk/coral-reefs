@@ -40,6 +40,9 @@ After cloning the repository:
 $ cd [repository]/app/application
 # Create a python virtual environment
 $ python3 -m venv [yourEnvironment]
+# Activate the virtual environment
+$ source [yourEnvironment]/bin/activate # Linux/MacOS
+> [yourEnvironment]\Script\activate # Windows
 # Install dependencies
 $ pip install -r requirements.txt
 ```
@@ -49,6 +52,9 @@ $ pip install -r requirements.txt
 $ cd [repository]/app/modelapi
 # Create a python virtual environment
 $ python3 -m venv [yourEnvironment]
+# Activate the virtual environment
+$ source [yourEnvironment]/bin/activate # Linux/MacOS
+> [yourEnvironment]\Script\activate # Windows
 # Install dependencies
 $ pip install -r requirements.txt
 ```
@@ -71,6 +77,9 @@ $ mkdir preview
 $ cd [repository]/exp
 # Create a python virtual environment
 $ python3 -m venv [yourEnvironment]
+# Activate the virtual environment
+$ source [yourEnvironment]/bin/activate # Linux/MacOS
+> [yourEnvironment]\Script\activate # Windows
 # Install dependencies
 $ pip install -r requirements.txt
 ```
