@@ -30,7 +30,9 @@ The directory `/exp` contains some experimental stand-alone code written for tes
 purposes.
 
 ## Installation
-**Important:** `Python 3.10` is required to run the application.
+**Important:** 
+- `Python 3.10` is required to run the application.
+- The commands to operate virtual environment on Windows or Linux/MacOS are slightly different
 
 After cloning the repository:
 
@@ -56,7 +58,8 @@ $ python3 -m venv [yourEnvironment]
 $ source [yourEnvironment]/bin/activate # Linux/MacOS
 > [yourEnvironment]\Script\activate # Windows
 # Install dependencies
-$ pip install -r requirements.txt
+$ pip install -r requirements.txt (Linux/MacOS)
+$ pip install -r requirements-win.txt (Windows)
 ```
 3. Verify `app/storage/export` and `app/storage/preview` exist. If not:
 ```bash

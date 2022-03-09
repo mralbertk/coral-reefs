@@ -9,3 +9,12 @@
 
 #### implemented
 - Imported the main application with basic features
+
+---
+# Updates
+
+## V 0.1.1
+- Updated installation instructions for Windows systems
+
+## V 0.1.0
+- Imported application
