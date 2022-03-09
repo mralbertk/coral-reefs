@@ -1,11 +1,5 @@
 """Configuration file"""
 
-# Application paths
-paths = {'export': '../storage/export/',
-         'preview': '../storage/preview/'
-
-}
-
 # Import all existing filters TODO: Make less clunky
 import models.uwiColorRestore.dcp as dcp
 import models.uwiColorRestore.gbdehazingrcorrection as gbdehaze
@@ -17,6 +11,12 @@ import models.uwiEnhance.ICM as icm
 import models.uwiEnhance.RayleighDistribution as rayleigh
 import models.uwiEnhance.RGHS as rghs
 import models.uwiEnhance.UCM as ucm
+
+# Application paths
+paths = {'export': '../storage/export/',
+         'preview': '../storage/preview/'
+
+}
 
 # Command pattern. The backend uses this dictionary to
 # tell the frontend what filters are available, and to
