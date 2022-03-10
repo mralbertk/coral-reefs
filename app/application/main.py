@@ -2,6 +2,11 @@ import streamlit as st
 import requests
 
 
+# =======================================================
+# ================ Function Definitions =================
+# =======================================================
+
+
 def cleanup(folder: str) -> dict:
     """
     Posts a request to the API to initiate
@@ -38,16 +43,38 @@ def get_params(model: str) -> dict:
 
 
 @st.cache
-def get_previews(files: dict) -> dict:
+def create_previews(data: dict) -> dict:
     """
     Sends an uploaded image to the backend and
     calls the generate_preview function. Returns
     a dictionary with the execution time and a
     list of preview thumbnails.
     """
-    prev = requests.post("http://localhost:8000/previews", files=files)
+    prev = requests.post("http://localhost:8000/previews", files=data)
     return prev.json()
 
+
+@st.cache
+def create_preview(model: str, data: dict, parameters: dict) -> dict:
+    """EXPLAIN HERE"""
+    prev = requests.post(f"http://localhost:8000/preview/{model}",
+                         files=data,
+                         params=parameters)
+    return prev.json()
+
+
+# =======================================================
+# ============= Variables Initialization ================
+# =======================================================
+
+option = None
+image = None
+available_models = None
+params = None
+
+# =======================================================
+# ================== Begin main script ==================
+# =======================================================
 
 # Config
 st.set_page_config(
@@ -95,7 +122,7 @@ if image:
     files = {"file": img}
 
     # Generate preview images
-    previews = get_previews(files)
+    previews = create_previews(files)
     timing = previews["time"]
     thumbs = previews["thumbs"]
 
@@ -114,32 +141,51 @@ if image:
     # Show compute time
     st.text(f"Preview images generated in {timing:.2f} seconds.")
 
-    # Show model selector
-    option = st.selectbox('Choose Filter', available_models)
+    # Show preview image - WIP
+    col1, col2 = st.columns([2, 1])
 
-    # Show param options
-    if option:
-        params = get_params(option)
-        model_params = {}
-        for param in params:
+    col1.subheader("Preview")
+    with col1:
 
-            match params[param]["type"]:
+        if not option:
+            option = "DCP"  # TODO: Replace with default setting in cfg
 
-                case "slider":
-                    model_params[param] = st.slider(param,
-                                                    params[param]["min"],
-                                                    params[param]["max"],
-                                                    params[param]["default"],
-                                                    params[param]["step"])
+        # TODO: Update to get actual parameter values, not labels
+        if not params:
+            params = {param: value for param, params[param] in get_params(option)}
 
-                case "selectbox":
-                    model_params[param] = st.selectbox(param,
-                                                       params[param]["options"],
-                                                       params[param]["default"])
+        img_preview = create_preview(option, files, params)
+        st.image(img_preview["prev"], use_column_width='always')
 
-        # Temporary: Show params in frontend
-        if model_params:
-            st.write(f"Selected  params: {model_params}")
+    col2.subheader("Parameters")
+    with col2:
+
+        # Show model selector
+        option = st.selectbox('Choose Filter', available_models)
+
+        # Show param options
+        if option:
+            params = get_params(option)
+            model_params = {}
+            for param in params:
+
+                match params[param]["type"]:
+
+                    case "slider":
+                        model_params[param] = st.slider(param,
+                                                        params[param]["min"],
+                                                        params[param]["max"],
+                                                        params[param]["default"],
+                                                        params[param]["step"])
+
+                    case "selectbox":
+                        model_params[param] = st.selectbox(param,
+                                                           params[param]["options"],
+                                                           params[param]["default"])
+
+    # Temporary: Show params in frontend
+    if model_params:
+        st.write(f"Selected  params: {model_params}")
 
     # Upload image to API button
     if st.button("Apply filter") and option:

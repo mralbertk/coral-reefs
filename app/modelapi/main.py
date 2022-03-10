@@ -98,6 +98,31 @@ async def generate_previews(file: UploadFile = File(...)):
             "thumbs": thumbnails}
 
 
+# Create a single preview image
+@app.post("/preview/{model}")
+async def generate_preview(model: str,
+                           file: UploadFile = File(...),
+                           params: dict = None):
+    """EXPLAIN HERE"""
+    start = time.time()
+    image = np.array(Image.open(file.file))
+
+    # TODO: Parameter type conversion
+
+    img = cv2.cvtColor(image, cv2.cv2.COLOR_RGB2BGR)
+    res = cv2.resize(img, (256, 256), interpolation=cv2.INTER_AREA)
+
+    name = f'{cfg.paths["preview"]}/{uuid.uuid4()}_{model}.jpg'
+    output = cfg.models[model]["func"](res)
+    cv2.imwrite(name, output)
+
+    end = time.time()
+    elapsed = end - start
+
+    return {"time": elapsed,
+            "prev": name}
+
+
 # Delete files from backend file system when they are no longer needed
 @app.post("/cleanup/{folder}")
 async def cleanup(folder: str):
