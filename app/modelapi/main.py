@@ -25,6 +25,12 @@ async def get_models():
     return {"models": sorted(cfg.models)}
 
 
+@app.get("/{model}/params")
+async def get_params(model: str = None) -> dict:
+    """Returns the parameters for a chosen model"""
+    return {"params": cfg.models[model]["params"]}
+
+
 # Get an image from the frontend and apply selected model
 @app.post("/files/{model}")
 async def get_file(model: str = None, file: UploadFile = File(...)):
@@ -47,7 +53,7 @@ async def get_file(model: str = None, file: UploadFile = File(...)):
         name = f'{cfg.paths["export"]}{uuid.uuid4()}_{model}.jpg'
 
     # Apply the selected model
-    output = cfg.models[model](img)
+    output = cfg.models[model]["func"](img)
 
     # Write output to storage
     cv2.imwrite(name, output)
@@ -62,8 +68,8 @@ async def get_file(model: str = None, file: UploadFile = File(...)):
 
 
 # Get an image from the frontend and generate preview thumbnails
-@app.post("/preview")
-async def generate_preview(file: UploadFile = File(...)):
+@app.post("/previews")
+async def generate_previews(file: UploadFile = File(...)):
     """
     Receives an image via POST and applies
     all filters stored in the config file
@@ -81,7 +87,7 @@ async def generate_preview(file: UploadFile = File(...)):
 
     for model in cfg.models:
         name = f'{cfg.paths["preview"]}{uuid.uuid4()}_{model}.jpg'
-        output = cfg.models[model](res)
+        output = cfg.models[model]["func"](res)
         cv2.imwrite(name, output)
         thumbnails.append((model, name))
 

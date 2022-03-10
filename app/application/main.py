@@ -26,14 +26,26 @@ def get_models() -> list:
 
 
 @st.cache
-def get_preview(files: dict) -> dict:
+def get_params(model: str) -> dict:
+    """
+    Calls the backend to get a list of
+    parameters for a selected model.
+    Returns a dictionary with params
+    and default values.
+    """
+    params_res = requests.get(f"http://localhost:8000/{model}/params")
+    return params_res.json()["params"]
+
+
+@st.cache
+def get_previews(files: dict) -> dict:
     """
     Sends an uploaded image to the backend and
     calls the generate_preview function. Returns
     a dictionary with the execution time and a
     list of preview thumbnails.
     """
-    prev = requests.post("http://localhost:8000/preview", files=files)
+    prev = requests.post("http://localhost:8000/previews", files=files)
     return prev.json()
 
 
@@ -46,7 +58,6 @@ st.set_page_config(
 # Title
 st.header("Coral Image Processor")
 
-
 # Temporary: Confirm API is alive
 if st.button("Poke API"):
     api_res = requests.get("http://localhost:8000")
@@ -56,12 +67,14 @@ if st.button("Poke API"):
 # Temporary: Clear export folder
 if st.button("Clear exports"):
     clear_msg = cleanup("export")
-    st.write(f'/exports cleared. Deleted {clear_msg["removed"]} files in {clear_msg["time"]} seconds.')
+    st.write(f'/exports cleared. Deleted {clear_msg["removed"]} '
+             f'files in {clear_msg["time"]} seconds.')
 
 # Temporary: Clear preview folder
 if st.button("Clear preview"):
     clear_msg = cleanup("preview")
-    st.write(f'/previews cleared. Deleted {clear_msg["removed"]} files in {clear_msg["time"]} seconds.')
+    st.write(f'/previews cleared. Deleted {clear_msg["removed"]} '
+             f'files in {clear_msg["time"]} seconds.')
     st.legacy_caching.clear_cache()
 
 # Upload image widget TODO: add state to be able to reset
@@ -82,7 +95,7 @@ if image:
     files = {"file": img}
 
     # Generate preview images
-    previews = get_preview(files)
+    previews = get_previews(files)
     timing = previews["time"]
     thumbs = previews["thumbs"]
 
@@ -103,6 +116,30 @@ if image:
 
     # Show model selector
     option = st.selectbox('Choose Filter', available_models)
+
+    # Show param options
+    if option:
+        params = get_params(option)
+        model_params = {}
+        for param in params:
+
+            match params[param]["type"]:
+
+                case "slider":
+                    model_params[param] = st.slider(param,
+                                                    params[param]["min"],
+                                                    params[param]["max"],
+                                                    params[param]["default"],
+                                                    params[param]["step"])
+
+                case "selectbox":
+                    model_params[param] = st.selectbox(param,
+                                                       params[param]["options"],
+                                                       params[param]["default"])
+
+        # Temporary: Show params in frontend
+        if model_params:
+            st.write(f"Selected  params: {model_params}")
 
     # Upload image to API button
     if st.button("Apply filter") and option:
