@@ -46,7 +46,7 @@ def get_params(model: str) -> dict:
 def create_previews(data: dict) -> dict:
     """
     Sends an uploaded image to the backend and
-    calls the generate_preview function. Returns
+    calls the generate_previews function. Returns
     a dictionary with the execution time and a
     list of preview thumbnails.
     """
@@ -55,22 +55,16 @@ def create_previews(data: dict) -> dict:
 
 
 @st.cache
-def create_preview(model: str, data: dict, parameters: dict) -> dict:
-    """EXPLAIN HERE"""
+def create_preview(model: str, data: dict, paras: dict = None) -> dict:
+    """Sends an uploaded image and a set of user-
+    defined parameters to the backend and calls the
+    generate_preview function. Returns dictionary
+    with a link to the preview image."""
     prev = requests.post(f"http://localhost:8000/preview/{model}",
-                         files=data,
-                         params=parameters)
+                         params=paras,
+                         files=data)
+
     return prev.json()
-
-
-# =======================================================
-# ============= Variables Initialization ================
-# =======================================================
-
-option = None
-image = None
-available_models = None
-params = None
 
 # =======================================================
 # ================== Begin main script ==================
@@ -143,51 +137,38 @@ if image:
 
     # Show preview image - WIP
     col1, col2 = st.columns([2, 1])
-
     col1.subheader("Preview")
-    with col1:
-
-        if not option:
-            option = "DCP"  # TODO: Replace with default setting in cfg
-
-        # TODO: Update to get actual parameter values, not labels
-        if not params:
-            params = {param: value for param, params[param] in get_params(option)}
-
-        img_preview = create_preview(option, files, params)
-        st.image(img_preview["prev"], use_column_width='always')
-
     col2.subheader("Parameters")
-    with col2:
 
+    with col2:
         # Show model selector
         option = st.selectbox('Choose Filter', available_models)
 
         # Show param options
         if option:
             params = get_params(option)
-            model_params = {}
+            set_params = {}
             for param in params:
 
                 match params[param]["type"]:
 
                     case "slider":
-                        model_params[param] = st.slider(param,
-                                                        params[param]["min"],
-                                                        params[param]["max"],
-                                                        params[param]["default"],
-                                                        params[param]["step"])
+                        set_params[param] = st.slider(param,
+                                                      params[param]["min"],
+                                                      params[param]["max"],
+                                                      params[param]["default"],
+                                                      params[param]["step"])
 
                     case "selectbox":
-                        model_params[param] = st.selectbox(param,
-                                                           params[param]["options"],
-                                                           params[param]["default"])
+                        set_params[param] = st.selectbox(param,
+                                                         params[param]["options"],
+                                                         params[param]["default"])
+    with col1:
 
-    # Temporary: Show params in frontend
-    if model_params:
-        st.write(f"Selected  params: {model_params}")
+        img_preview = create_preview(option, files, set_params)
+        st.image(img_preview["prev"], use_column_width='always')
 
-    # Upload image to API button
+    # Apply filter button
     if st.button("Apply filter") and option:
         # Send to API
         img_res = requests.post(f"http://localhost:8000/files/{option}", files=files)

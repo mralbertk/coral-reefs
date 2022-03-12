@@ -4,10 +4,13 @@ import uuid
 
 import cv2
 import numpy as np
+from enum import Enum
 from PIL import Image
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Request
+from helpers import param_types
 
 import config as cfg
+
 
 # FastAPI instance
 app = FastAPI()
@@ -15,8 +18,8 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    """Sign of life to confirm API is active"""
-    return {"message": "API is alive"}
+    """API Health Check"""
+    return {"message": "OK"}
 
 
 @app.get("/models")
@@ -101,19 +104,24 @@ async def generate_previews(file: UploadFile = File(...)):
 # Create a single preview image
 @app.post("/preview/{model}")
 async def generate_preview(model: str,
-                           file: UploadFile = File(...),
-                           params: dict = None):
-    """EXPLAIN HERE"""
+                           params: Request,
+                           file: UploadFile = File(...)):
+    """
+    Generates a single preview image based on user-defined
+    parameters.
+    """
     start = time.time()
     image = np.array(Image.open(file.file))
 
-    # TODO: Parameter type conversion
+    # Parameter type conversion
+    params = dict(params.query_params)
+    params = param_types(params)
 
     img = cv2.cvtColor(image, cv2.cv2.COLOR_RGB2BGR)
     res = cv2.resize(img, (256, 256), interpolation=cv2.INTER_AREA)
 
     name = f'{cfg.paths["preview"]}/{uuid.uuid4()}_{model}.jpg'
-    output = cfg.models[model]["func"](res)
+    output = cfg.models[model]["func"](res, **params)
     cv2.imwrite(name, output)
 
     end = time.time()

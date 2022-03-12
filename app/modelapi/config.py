@@ -14,9 +14,7 @@ import models.uwiEnhance.UCM as ucm
 
 # Application paths
 paths = {'export': '../storage/export/',
-         'preview': '../storage/preview/'
-
-         }
+         'preview': '../storage/preview/'}
 
 # Command pattern. The backend uses this dictionary
 # to tell the frontend what filters are available.
@@ -27,11 +25,11 @@ models = {"DCP":
                              "default": 0.01, "step": 0.01},
                    "t0": {"type": "slider", "min": 0.1, "max": 1.0,
                           "default": 0.1, "step": 0.1},
-                   "blockSize": {"type": "slider", "min": 1, "max": 50,
-                                 "default": 15, "step": 1},
+                   "blockSize": {"type": "slider", "min": 3, "max": 25,
+                                 "default": 15, "step": 2},
                    "percent": {"type": "slider", "min": 0.001, "max": 0.1,
                                "default": 0.001, "step": 0.001},
-                   "meanMode": {"type": "selectbox", "options": (True, False),
+                   "meanMode": {"type": "selectbox", "options": ("True", "False"),
                                 "default": 1}
                }
                },
