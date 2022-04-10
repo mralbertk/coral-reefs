@@ -1,6 +1,14 @@
 import streamlit as st
 import requests
+import os
 
+# =======================================================
+# ======================= Setup =========================
+# =======================================================
+
+# Temporary configuration for local vs containerized run
+in_container = os.getenv('IN_CONTAINER', False)
+TARGET_API = "coral-reef-fastapi:8000" if in_container else "localhost:8000"
 
 # =======================================================
 # ================ Function Definitions =================
@@ -15,7 +23,7 @@ def cleanup(folder: str) -> dict:
 
     Accepted folders: /preview or /export
     """
-    req = requests.post(f"http://localhost:8000/cleanup/{folder}")
+    req = requests.post(f"http://{TARGET_API}/cleanup/{folder}")
     return req.json()
 
 
@@ -26,7 +34,7 @@ def get_models() -> list:
     available filters. Returns a list of
     filters.
     """
-    avail_models = requests.get("http://localhost:8000/models/")
+    avail_models = requests.get(f"http://{TARGET_API}/models/")
     return avail_models.json()["models"]
 
 
@@ -38,7 +46,7 @@ def get_params(model: str) -> dict:
     Returns a dictionary with params
     and default values.
     """
-    params_res = requests.get(f"http://localhost:8000/{model}/params")
+    params_res = requests.get(f"http://{TARGET_API}/{model}/params")
     return params_res.json()["params"]
 
 
@@ -50,7 +58,7 @@ def create_previews(data: dict) -> dict:
     a dictionary with the execution time and a
     list of preview thumbnails.
     """
-    prev = requests.post("http://localhost:8000/previews", files=data)
+    prev = requests.post(f"http://{TARGET_API}/previews", files=data)
     return prev.json()
 
 
@@ -60,7 +68,7 @@ def create_preview(model: str, data: dict, paras: dict = None) -> dict:
     defined parameters to the backend and calls the
     generate_preview function. Returns dictionary
     with a link to the preview image."""
-    prev = requests.post(f"http://localhost:8000/preview/{model}",
+    prev = requests.post(f"http://{TARGET_API}/preview/{model}",
                          params=paras,
                          files=data)
 
@@ -81,7 +89,7 @@ st.header("Coral Image Processor")
 
 # Temporary: Confirm API is alive
 if st.button("Poke API"):
-    api_res = requests.get("http://localhost:8000")
+    api_res = requests.get(f"http://{TARGET_API}")
     api_msg = api_res.json()
     st.write(api_msg["message"])
 
@@ -171,7 +179,7 @@ if image:
     # Apply filter button
     if st.button("Apply filter") and option:
         # Send to API
-        img_res = requests.post(f"http://localhost:8000/files/{option}", files=files)
+        img_res = requests.post(f"http://{TARGET_API}/files/{option}", files=files)
 
         # Process response and display new image
         img_msg = img_res.json()

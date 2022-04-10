@@ -1,0 +1,29 @@
+# Some comment here
+
+version: "3.7"
+
+services:
+  frontend:
+    build: application
+    image: coral-reef-streamlit:dev
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    volumes:
+      - coral-reef-storage:/storage/
+    container_name: "coral-reef-streamlit"
+
+
+  backend:
+    build: modelapi
+    image: coral-reef-fastapi:dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - coral-reef-storage:/storage/
+    container_name: "coral-reef-fastapi"
+
+volumes:
+  coral-reef-storage:
+    external: true
