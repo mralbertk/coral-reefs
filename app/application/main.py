@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import os
+import json
 
 # =======================================================
 # ======================= Setup =========================
@@ -9,6 +10,7 @@ import os
 # Temporary configuration for local vs containerized run
 in_container = os.getenv('IN_CONTAINER', False)
 TARGET_API = "coral-reef-fastapi:8000" if in_container else "localhost:8000"
+
 
 # =======================================================
 # ================ Function Definitions =================
@@ -74,6 +76,15 @@ def create_preview(model: str, data: dict, paras: dict = None) -> dict:
 
     return prev.json()
 
+
+@st.cache
+def rotate_frame(data: dict) -> dict:
+    """Some documentation here"""
+    res = requests.get(f"http://{TARGET_API}/image/reframe",
+                       files=data)
+    return res.json()
+
+
 # =======================================================
 # ================== Begin main script ==================
 # =======================================================
@@ -114,14 +125,22 @@ available_models = get_models()
 
 # Show image
 if image:
-    st.subheader("Original")
-    st.image(image)
 
     # Serialize the image
     img = image.getvalue()
 
     # Assemble the request body
     files = {"file": img}
+
+    # Update the image: Crop and rotate
+    image = rotate_frame(files)
+
+    st.text(image)
+    # Deserialize the image
+    image = st.image(image["image"])
+
+    st.subheader("Original")
+    st.image(image)
 
     # Generate preview images
     previews = create_previews(files)
