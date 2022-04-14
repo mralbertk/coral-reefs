@@ -1,7 +1,8 @@
 import streamlit as st
 import requests
 import os
-import json
+import io
+
 
 # =======================================================
 # ======================= Setup =========================
@@ -135,12 +136,16 @@ if image:
     # Update the image: Crop and rotate
     image = rotate_frame(files)
 
-    st.text(image)
-    # Deserialize the image
+    # Serialize the new image
+    with open(image["image"], "rb") as f:
+        img = f.read()
+
+    # Deserialize and display image
+    st.subheader("Original")
     image = st.image(image["image"])
 
-    st.subheader("Original")
-    st.image(image)
+    # Re-assemble the request body
+    files = {"file": img}
 
     # Generate preview images
     previews = create_previews(files)
