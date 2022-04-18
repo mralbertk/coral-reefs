@@ -1,6 +1,8 @@
 import boto3
 import cv2
+import numpy as np
 import urllib.parse
+from PIL import Image
 
 
 def handler(event, context):
@@ -31,7 +33,8 @@ def handler(event, context):
         s3_client.download_fileobj(s3_bucket_input, s3_image_input, f)
 
     # Perform Histogram Equalization
-    image = cv2.imread(image_path)
+    image = np.array(Image.open(image_path))
+    image = cv2.cvtColor(image, cv2.cv2.COLOR_RGB2BGR)
 
     for i in range(3):
         image = cv2.equalizeHist(image[:, :, i])
