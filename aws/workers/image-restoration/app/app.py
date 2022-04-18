@@ -37,7 +37,7 @@ def handler(event, context):
     image = cv2.cvtColor(image, cv2.cv2.COLOR_RGB2BGR)
 
     for i in range(3):
-        image = cv2.equalizeHist(image[:, :, i])
+        image[:, :, i] = cv2.equalizeHist(image[:, :, i])
 
     cv2.imwrite(output_path, image)
 
