@@ -9,8 +9,8 @@ def handler(event, context):
     """
 
     # Internal storage configuration
-    image_path = "tmp/image.jpg"
-    output_path = "tmp/output.jpg"
+    image_path = "/tmp/image.jpg"
+    output_path = "/tmp/output.jpg"
 
     # Connect to S3 & configure output
     s3_client = boto3.client("s3")
