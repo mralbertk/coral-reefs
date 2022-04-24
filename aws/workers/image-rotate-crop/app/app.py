@@ -79,9 +79,6 @@ def reframe(model_path, file, new_size=400):
     # Invert to BGR for CV2
     img = image[:, :, [2, 1, 0]]
 
-    # Read image with OpenCV as RGB (instead of BGR)
-    img = cv2.cvtColor(img)
-
     # Current image dimensions
     rows, cols = img.shape[:2]
 
