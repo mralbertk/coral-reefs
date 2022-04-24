@@ -13,6 +13,7 @@ COPY requirements.txt  .
 RUN  pip3 install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
 # Install Detectron
+# RUN python -m pip install --user 'git+https://github.com/facebookresearch/detectron2.git'
 RUN python -m pip install detectron2 -f \
   https://dl.fbaipublicfiles.com/detectron2/wheels/cpu/torch1.10/index.html
 
