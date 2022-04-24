@@ -10,11 +10,11 @@ from PIL import Image
 
 
 def handler(event, context):
-
     # Retrieve the image path from the event
     # Retrieve the model path from ... parameter store?
 
     pass
+
 
 def reframe(model_path, file, new_size=400):
     """
@@ -204,6 +204,7 @@ def custom_config(model_path=None):
 
     return predictor
 
+
 #   /------------------------------------------------/
 #  /                   Intersection                 /
 # /------------------------------------------------/
@@ -262,7 +263,6 @@ def get_lines_intersections(pts, ncols=1e158, nrows=1e158):
     assert len(pts) == 4, 'There are more than 4 points in the input list'
 
     for corner in range(4):
-
         # First line
         p1 = pts[c[corner]]
         l1 = line(p1[0], p1[1])
@@ -283,6 +283,7 @@ def get_lines_intersections(pts, ncols=1e158, nrows=1e158):
     new_contour = np.array(new_contour, dtype="int32")
 
     return new_contour
+
 
 #   /------------------------------------------------/
 #  /                   Warping                      /
