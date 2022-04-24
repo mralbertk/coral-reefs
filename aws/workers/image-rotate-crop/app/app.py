@@ -18,9 +18,6 @@ def handler(event, context):
     output_path = "/tmp/output.jpg"
     m_path = "/tmp/model.pth"
 
-    # TODO: Load model from S3
-    m_path = "/tmp/model.pth"
-
     # Connect to S3 & configure
     s3_client = boto3.client("s3")
     s3_image_output = "my_reframed_test.jpg"  # TODO: Replace temporary name
@@ -79,8 +76,11 @@ def reframe(model_path, file, new_size=400):
     # Read image
     image = np.array(Image.open(file))
 
+    # Invert to BGR for CV2
+    img = image[:, :, [2, 1, 0]]
+
     # Read image with OpenCV as RGB (instead of BGR)
-    img = cv2.cvtColor(image, cv2.COLOR_RGB2BRG)
+    img = cv2.cvtColor(img)
 
     # Current image dimensions
     rows, cols = img.shape[:2]
