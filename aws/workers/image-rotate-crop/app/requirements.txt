@@ -4,6 +4,7 @@ opencv-python-headless==4.5.5.62
 certifi==2021.10.8
 charset-normalizer==2.0.12
 idna==3.3
+imutils==0.5.4
 numpy==1.22.3
 Pillow==9.1.0
 requests==2.27.1
