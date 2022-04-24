@@ -177,12 +177,12 @@ def fit_lines_on_edges(contour, screen_contour, rows, cols, threshold=100, epsil
     left_x = []
     right_x = []
     cut_contour = []
-    c = [0, 1, 2, 3, 0]
+    c_list = [0, 1, 2, 3, 0]
 
     for edge in range(4):
         # define 2 extreme points of the edge
-        c1 = screen_contour[c[edge]][0]
-        c2 = screen_contour[c[edge + 1]][0]
+        c1 = screen_contour[c_list[edge]][0]
+        c2 = screen_contour[c_list[edge + 1]][0]
 
         # select all the contour points that are located between these 2 points +- margin --> cut_contour
         if abs(c1[0] - c2[0]) < threshold:  # if the 2 pts have almost the same abscissa
