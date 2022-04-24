@@ -6,6 +6,7 @@ RUN yum groupinstall -y "Development Tools"
 
 # Copy function code
 COPY app.py ${LAMBDA_TASK_ROOT}
+COPY model/model.pth ${LAMBDA_TASK_ROOT}/tmp
 
 # Install the function's dependencies using file requirements.txt
 # from your project folder.

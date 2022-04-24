@@ -18,7 +18,7 @@ def handler(event, context):
     output_path = "/tmp/output.jpg"
 
     # TODO: Improve model naming
-    m_path = "model_final.pth"
+    m_path = "/tmp/model_final.pth"
 
     # Connect to S3 & configure output
     s3_client = boto3.client("s3")
