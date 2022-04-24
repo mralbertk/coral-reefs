@@ -16,14 +16,17 @@ def handler(event, context):
     # Internal storage configuration
     image_path = "/tmp/image.jpg"
     output_path = "/tmp/output.jpg"
+    m_path = "/tmp/model.pth"
 
-    # TODO: Improve model naming
-    m_path = "model_final.pth"
+    # TODO: Load model from S3
+    m_path = "/tmp/model.pth"
 
-    # Connect to S3 & configure output
+    # Connect to S3 & configure
     s3_client = boto3.client("s3")
     s3_image_output = "my_reframed_test.jpg"  # TODO: Replace temporary name
     s3_bucket_output = "criobe-images-reframed"
+    s3_model_bucket = "criobe-models-rotate-crop"
+    s3_model_name = "detectron2-reframe.pth"
 
     # Get input image object & bucket from event
     s3_image_input = urllib.parse.unquote_plus(
@@ -37,6 +40,10 @@ def handler(event, context):
     # Download image to container
     with open(image_path, 'wb') as f:
         s3_client.download_fileobj(s3_bucket_input, s3_image_input, f)
+
+    # Download model to container
+    with open(m_path, 'wb') as f:
+        s3_client.download_fileobj(s3_model_bucket, s3_model_name, f)
 
     # Reframe
     reframe(m_path, image_path)
