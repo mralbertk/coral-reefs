@@ -2,6 +2,7 @@ import boto3
 import cv2
 import imutils
 import os
+import urllib.parse
 import numpy as np
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
@@ -10,10 +11,49 @@ from PIL import Image
 
 
 def handler(event, context):
-    # Retrieve the image path from the event
-    # Retrieve the model path from ... parameter store?
+    """TODO: Add docstring"""
 
-    pass
+    # Internal storage configuration
+    image_path = "/tmp/image.jpg"
+    output_path = "/tmp/output.jpg"
+
+    # TODO: Improve model naming
+    m_path = "model_final.pth"
+
+    # Connect to S3 & configure output
+    s3_client = boto3.client("s3")
+    s3_image_output = "my_reframed_test.jpg"  # TODO: Replace temporary name
+    s3_bucket_output = "criobe-images-reframed"
+
+    # Get input image object & bucket from event
+    s3_image_input = urllib.parse.unquote_plus(
+        event['Records'][0]['s3']['object']['key'], encoding='utf-8'
+    )
+
+    s3_bucket_input = urllib.parse.unquote_plus(
+        event['Records'][0]['s3']['bucket']['name'], encoding='utf-8'
+    )
+
+    # Download image to container
+    with open(image_path, 'wb') as f:
+        s3_client.download_fileobj(s3_bucket_input, s3_image_input, f)
+
+    # Reframe
+    reframe(m_path, image_path)
+
+    # Save new image to S3
+    s3_client.upload_file(output_path, s3_bucket_output, s3_image_output)
+
+    return {
+        "statusCode": 200,
+        "headers": {
+            "Content-Type": "application-json"
+        },
+        "body": {
+            "image-bucket": s3_bucket_output,
+            "image-object": s3_image_output
+        }
+    }
 
 
 def reframe(model_path, file, new_size=400):
@@ -30,7 +70,7 @@ def reframe(model_path, file, new_size=400):
     predictor = custom_config(model_path=model_path)
 
     # Read image
-    image = np.array(Image.open(file.file))
+    image = np.array(Image.open(file))
 
     # Read image with OpenCV as RGB (instead of BGR)
     img = cv2.cvtColor(image, cv2.cv2.COLOR_RGB2BGR)
@@ -66,12 +106,11 @@ def reframe(model_path, file, new_size=400):
     # Last step: Reframe
     warped = warping(img, pts=np.float32(new_contour[:, 0]), newSize=new_size)
 
-    # TODO: Save new image to S3 & return to handler
-
-    name = f'{cfg.paths["export"]}{uuid.uuid4()}.jpg'
+    # Save new image to internal file system
+    name = '/tmp/output.jpg'
     cv2.imwrite(name, warped)
 
-    return {"image": name}
+    return 1
 
 
 #   /------------------------------------------------/
