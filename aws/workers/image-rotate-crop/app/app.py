@@ -108,7 +108,7 @@ def reframe(model_path, file, new_size=400):
     new_contour = get_lines_intersections(lines_pts, ncols=cols, nrows=rows)
 
     # Last step: Reframe
-    warped = warping(img, pts=np.float32(new_contour[:, 0]), newSize=new_size)
+    warped = warping(img, pts=np.float32(new_contour[:, 0]), new_size=new_size)
 
     # Save new image to internal file system
     name = '/tmp/output.jpg'
