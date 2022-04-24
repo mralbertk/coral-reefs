@@ -80,7 +80,7 @@ def reframe(model_path, file, new_size=400):
     image = np.array(Image.open(file))
 
     # Read image with OpenCV as RGB (instead of BGR)
-    img = cv2.cvtColor(image, cv2.cv2.COLOR_RGB2BGR)
+    img = cv2.cvtColor(image, cv2.COLOR_RGB2BRG)
 
     # Current image dimensions
     rows, cols = img.shape[:2]
