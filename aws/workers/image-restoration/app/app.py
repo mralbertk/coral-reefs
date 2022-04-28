@@ -16,10 +16,13 @@ def handler(event, context):
 
     # Connect to S3 & configure output
     s3_client = boto3.client("s3")
-    # s3_image_output = "my_test.jpg"  # TODO: Replace temporary name
+
+    # Output image name matches input name
     s3_image_output = urllib.parse.unquote_plus(
         event['Records'][0]['s3']['object']['key'], encoding='utf-8'
     )
+
+    # TODO: Parameterize output bucket name
     s3_bucket_output = "criobe-images-treated"
 
     # Get input image object & bucket from event

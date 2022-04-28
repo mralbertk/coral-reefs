@@ -20,15 +20,21 @@ def handler(event, context):
 
     # Connect to S3 & configure
     s3_client = boto3.client("s3")
-    s3_image_output = "my_reframed_test.jpg"  # TODO: Replace temporary name
+
+    # Output image name matches input name
+    s3_image_output = urllib.parse.unquote_plus(
+        event['Records'][0]['s3']['object']['key'], encoding='utf-8'
+    )
+
+    # TODO: Parameterize output bucket
     s3_bucket_output = "criobe-images-reframed"
+
+    # TODO: Parameterize model path
     s3_model_bucket = "criobe-models-rotate-crop"
     s3_model_name = "detectron2-reframe.pth"
 
     # Get input image object & bucket from event
-    s3_image_input = urllib.parse.unquote_plus(
-        event['Records'][0]['s3']['object']['key'], encoding='utf-8'
-    )
+    s3_image_input = s3_image_output
 
     s3_bucket_input = urllib.parse.unquote_plus(
         event['Records'][0]['s3']['bucket']['name'], encoding='utf-8'
