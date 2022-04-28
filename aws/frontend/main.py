@@ -153,7 +153,8 @@ if mode == "Upload Image(s)":
             for image in images:
                 to_upload += 1 / len(images)
                 upload_bar.progress(to_upload)
-                filename = f"{year}-{location}-{image.name}"
+                name_two_digits = f"{int(image.name.split('.')[0]):02d}.{image.name.split('.')[-1]}"
+                filename = f"{year}-{location}-{name_two_digits}"
                 s3_image_upload(image, filename, s3_bucket_raw, s3_client)
 
 # Image view mode
