@@ -13,7 +13,7 @@ def handler(event, context):
 
     # Internal storage configuration
     image_path = "/tmp/image"
-    output_path = "/tmp/output"
+    output_path = "/tmp/output.jpg"
 
     # Connect to S3 & configure output
     s3_client = boto3.client("s3")
@@ -44,13 +44,13 @@ def handler(event, context):
         with rawpy.imread(image_path) as raw:
             rgb_image = raw.postprocess()
         converted_image = Image.fromarray(rgb_image)
-        converted_image.save(image_path)
+        converted_image.save(".".join([image_path, "jpg"]))
 
         # Update output file to reflect format change
         s3_image_output = ".".join([s3_image_output.split(".")[0], "jpg"])
 
     # Perform Histogram Equalization
-    image = np.array(Image.open(image_path))
+    image = np.array(Image.open(".".join([image_path, "jpg"])))
     image = cv2.cvtColor(image, cv2.cv2.COLOR_RGB2BGR)
 
     for i in range(3):
