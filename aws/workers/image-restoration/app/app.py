@@ -1,5 +1,6 @@
 import boto3
 import cv2
+import rawpy
 import numpy as np
 import urllib.parse
 from PIL import Image
@@ -11,8 +12,8 @@ def handler(event, context):
     """
 
     # Internal storage configuration
-    image_path = "/tmp/image.jpg"
-    output_path = "/tmp/output.jpg"
+    image_path = "/tmp/image"
+    output_path = "/tmp/output"
 
     # Connect to S3 & configure output
     s3_client = boto3.client("s3")
@@ -37,6 +38,16 @@ def handler(event, context):
     # Download image to container
     with open(image_path, 'wb') as f:
         s3_client.download_fileobj(s3_bucket_input, s3_image_input, f)
+
+    # If the S3 image is in raw format, convert to jpg
+    if s3_image_input.split(".")[-1].lower() == "nef":
+        with rawpy.imread(image_path) as raw:
+            rgb_image = raw.postprocess()
+        converted_image = Image.fromarray(rgb_image)
+        converted_image.save(image_path)
+
+        # Update output file to reflect format change
+        s3_image_output = ".".join([s3_image_output.split(".")[0], "jpg"])
 
     # Perform Histogram Equalization
     image = np.array(Image.open(image_path))
