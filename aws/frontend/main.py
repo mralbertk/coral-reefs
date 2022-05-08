@@ -29,7 +29,7 @@ def s3_image_upload(file, file_name, bucket, client):
 # TODO: Make sure this does not break when there are more than 1000 images
 def get_s3_object_filters(bucket, resource):
     """Scans all objects in an S3 bucket and returns lists of available
-    years & locations.
+    years and locations.
 
     The list is used to generate filters for users to view an image set.
 
