@@ -2,7 +2,7 @@ name: Deploy Frontend to Amazon ECR
 
 on:
   # FOR TESTING ONLY
-  workflow-dispatch:
+  workflow_dispatch:
   push:
     branches:
       - aws-dev
