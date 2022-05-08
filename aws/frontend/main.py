@@ -9,7 +9,7 @@ from PIL import Image
 # /------------------------------------------------/
 
 def s3_image_upload(file, file_name, bucket, client):
-    """Uploads an image file object to Amazon S3
+    """Uploads an image file object to Amazon S3.
 
     Args:
         file: The file object to upload to Amazon S3
