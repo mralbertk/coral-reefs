@@ -5,4 +5,4 @@ COPY . /streamlit
 WORKDIR /streamlit
 RUN python3 -m pip install -r requirements.txt
 EXPOSE 8501
-CMD streamlit run main.py
+CMD streamlit run main.py --server.enableCORS=false
