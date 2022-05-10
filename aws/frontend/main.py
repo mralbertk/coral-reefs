@@ -94,6 +94,15 @@ def load_s3_image(s3_object, bucket, resource):
 
 
 #   /------------------------------------------------/
+#  /               Temp Authentication              /
+# /------------------------------------------------/
+
+def authenticate():
+    if st.session_state.pwd == "password":
+        st.session_state.auth = True
+
+
+#   /------------------------------------------------/
 #  /                   Configuration                /
 # /------------------------------------------------/
 
@@ -109,7 +118,6 @@ s3_bucket_reframed = "criobe-images-reframed"
 #        are: Upload Image(s), View Image(s), Export Stats
 view_modes = ("Upload Image(s)", "View Image(s)", "Export Statistics")
 
-
 #   /------------------------------------------------/
 #  /                Streamlit Script                /
 # /------------------------------------------------/
@@ -120,8 +128,18 @@ st.set_page_config(
     page_icon='🐠'
 )
 
+# Initialize auth session state
+if 'auth' not in st.session_state:
+    st.session_state.auth = False
+
 # Page Header
 st.header("Coral Image Processor")
+
+# Authentication
+if not st.session_state.auth:
+    st.session_state.pwd = st.text_input("Enter Password", value="")
+    st.button("Submit", on_click=authenticate)
+    st.stop()
 
 # Select view mode
 mode = st.selectbox("What would you like to do?", view_modes)
@@ -197,7 +215,6 @@ if mode == "View Image(s)":
                 st.text(s3_image.split(".")[0])
                 st.image(this_image)
                 loc += 1
-
 
 # Get statistics mode
 if mode == "Export Statistics":
