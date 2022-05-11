@@ -26,28 +26,31 @@ def s3_image_upload(file, file_name, bucket, client):
     client.upload_fileobj(file, bucket, file_name)
 
 
-# TODO: Make sure this does not break when there are more than 1000 images
 def get_s3_object_filters(bucket, resource):
-    """Scans all objects in an S3 bucket and returns lists of available
-    years and locations.
-
-    The list is used to generate filters for users to view an image set.
+    """Scans all objects in an S3 bucket and returns dictionary of available
+    locations with corresponding years.
 
     Args:
         bucket: The S3 bucket to scan
         resource: A Boto3 S3 resource instance
 
     Returns:
-        Two lists: Unique years and unique locations
+        A dictionary: {loc_1: {year_1, ..., year_n}, ..., loc_n: {y1, ..., yn}}
 
     Raises:
         Boto3 error if the bucket name is not found on your AWS account
     """
+    available_sets = {}
     bucket_resource = resource.Bucket(bucket)
     bucket_objects = [s3_object.key for s3_object in bucket_resource.objects.all()]
-    years = list({bucket_object.split("-")[0] for bucket_object in bucket_objects})
-    locations = list({bucket_object.split("-")[1] for bucket_object in bucket_objects})
-    return years, locations
+    for bucket_object in bucket_objects:
+        this_location = bucket_object.split("-")[1]     # location
+        this_year = bucket_object.split("-")[0]         # year
+        if this_location in available_sets.keys():
+            available_sets[this_location].add(this_year)
+        else:
+            available_sets[this_location] = {this_year}
+    return available_sets
 
 
 def fetch_s3_objects(prefix, bucket, resource):
@@ -97,6 +100,7 @@ def load_s3_image(s3_object, bucket, resource):
 #  /               Temp Authentication              /
 # /------------------------------------------------/
 
+# TODO: Obviously ...
 def authenticate():
     if st.session_state.pwd == "password":
         st.session_state.auth = True
@@ -164,14 +168,22 @@ if mode == "Upload Image(s)":
         submitted = st.form_submit_button("Upload to Amazon S3")
 
         # Image Upload Process
-        # TODO: Add robustness against missing year/location
-        if submitted and images:
+        # TODO: Add stronger validation for year & location input
+        if submitted \
+                and images \
+                and location != "" \
+                and year != "":
             upload_bar = st.progress(0.0)
             to_upload = 0
             for image in images:
                 to_upload += 1 / len(images)
                 upload_bar.progress(to_upload)
-                name_two_digits = f"{int(image.name.split('.')[0]):02d}.{image.name.split('.')[-1]}"
+                # Prevents the script from breaking if files are uploaded with no extension
+                # TODO: Make robust: Identify valid types /w magic number & reject rest
+                if len(image.name.split(".")) > 1:
+                    name_two_digits = f"{int(image.name.split('.')[0]):02d}.{image.name.split('.')[-1]}"
+                else:
+                    name_two_digits = f"{image.name}.jpg"
                 filename = f"{year}-{location}-{name_two_digits}"
                 s3_image_upload(image, filename, s3_bucket_raw, s3_client)
 
@@ -182,18 +194,19 @@ if mode == "View Image(s)":
     s3_resource = boto3.resource("s3")
 
     # Get options for selector
-    s3_years, s3_locations = get_s3_object_filters(s3_bucket_reframed, s3_resource)
+    if 'galleries' not in st.session_state:     # Store in session state to avoid reloading
+        st.session_state.galleries = get_s3_object_filters(s3_bucket_reframed, s3_resource)
 
     # Show selector
     selector_col_1, selector_col_2 = st.columns(2)
 
     # Select location
     with selector_col_1:
-        s3_locs = st.selectbox("Location", s3_locations)
+        s3_locs = st.selectbox("Location", sorted([*st.session_state.galleries]))
 
     # Select year
     with selector_col_2:
-        s3_ys = st.selectbox("Year", s3_years)
+        s3_ys = st.selectbox("Year", list(st.session_state.galleries[s3_locs]))
 
     # Fetch and display images
     btn_go = st.button("GO!")
