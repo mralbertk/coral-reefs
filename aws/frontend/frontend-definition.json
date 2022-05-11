@@ -32,7 +32,7 @@
     ],
     "networkMode": "awsvpc",
     "runtimePlatform": {
-        "operatingSystemFamily": "LINUX",
+        "operatingSystemFamily": "LINUX"
     },
     "cpu": "1024",
     "tags": [
