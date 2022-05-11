@@ -15,7 +15,6 @@ defaults:
 env:
   AWS_REGION: eu-west-1
   IAM_ROLE: ${{ secrets.AWS_IAM_ROLE }}
-  # ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
   ECR_REPOSITORY: ${{ secrets.ECR_FRONTEND_APP }}
   IMAGE_TAG: dev
 
@@ -49,9 +48,25 @@ jobs:
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        # IMAGE_TAG: ${{ github.sha }}
       run: |
         # Build a docker container and push to ECR
         docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
         docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
         echo "Successfully pushed ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:dev"
+
+    - name: Render Amazon ECS task definition
+      id: render-frontend-container
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: frontend-definition.json
+        container-name: DstiCriobeStreamlitFrontend
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy to Amazon ECS service
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-frontend-container.outputs.task-definition }}
+        service: DstiCriobeFargate-Service
+        cluster: DstiCriobeFargateCluster
+        wait-for-service-stability: true
