@@ -59,7 +59,7 @@ jobs:
       id: render-frontend-container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: frontend-definition.json
+        task-definition: aws/frontend/frontend-definition.json
         container-name: DstiCriobeStreamlitFrontend
         image: ${{ steps.build-image.outputs.image }}
 
