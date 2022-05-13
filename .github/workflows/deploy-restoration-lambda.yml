@@ -10,7 +10,7 @@ on:
 
 defaults:
   run:
-    working-directory: aws/frontend
+    working-directory: aws/workers/image-restoration/app
 
 env:
   AWS_REGION: eu-west-1
