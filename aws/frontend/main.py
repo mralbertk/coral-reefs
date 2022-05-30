@@ -116,6 +116,9 @@ s3_bucket_raw = "criobe-images-raw"
 
 # Image View Bucket TODO: Update with segmented bucket
 s3_bucket_reframed = "criobe-images-reframed"
+s3_bucket_selection = {"Reframed": "criobe-images-reframed",
+                       "Segmented": "criobe-images-segmented",
+                       "Masks": "criobe-images-masks"}
 
 # To keep the UI simple, users can select a desired operation
 # on top of the page.
@@ -197,7 +200,7 @@ if mode == "View Image(s)":
         st.session_state.galleries = get_s3_object_filters(s3_bucket_reframed, s3_resource)
 
     # Show selector
-    selector_col_1, selector_col_2 = st.columns(2)
+    selector_col_1, selector_col_2, selector_col_3 = st.columns(3)
 
     # Select location
     with selector_col_1:
@@ -207,6 +210,10 @@ if mode == "View Image(s)":
     with selector_col_2:
         s3_ys = st.selectbox("Year", list(st.session_state.galleries[s3_locs]))
 
+    # Select version
+    with selector_col_3:
+        s3_vs = st.selectbox("Version", list(s3_bucket_selection.keys()))
+
     # Fetch and display images
     btn_go = st.button("GO!")
 
@@ -214,7 +221,9 @@ if mode == "View Image(s)":
     if btn_go:
 
         # Fetch image names
-        s3_images = fetch_s3_objects(f"{s3_ys}-{s3_locs}", s3_bucket_reframed, s3_resource)
+        s3_images = fetch_s3_objects(f"{s3_ys}-{s3_locs}",
+                                     s3_bucket_selection[s3_vs],
+                                     s3_resource)
 
         # "Gallery" layout
         cols = st.columns(4)
@@ -222,7 +231,9 @@ if mode == "View Image(s)":
 
         # Load images into memory and display
         for s3_image in s3_images:
-            this_image = load_s3_image(s3_image, s3_bucket_reframed, s3_resource)
+            this_image = load_s3_image(s3_image,
+                                       s3_bucket_selection[s3_vs],
+                                       s3_resource)
             with cols[loc % 4]:
                 st.text(s3_image.split(".")[0])
                 st.image(this_image)
