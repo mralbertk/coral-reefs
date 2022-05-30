@@ -117,9 +117,8 @@ s3_bucket_raw = "criobe-images-raw"
 # Image View Bucket TODO: Update with segmented bucket
 s3_bucket_reframed = "criobe-images-reframed"
 
-# Modes: To keep the UI simple, users will be able to select
-#        a desired operation on top of the page. Operations
-#        are: Upload Image(s), View Image(s), Export Stats
+# To keep the UI simple, users can select a desired operation
+# on top of the page.
 view_modes = ("Upload Image(s)", "View Image(s)", "Export Statistics")
 
 #   /------------------------------------------------/
