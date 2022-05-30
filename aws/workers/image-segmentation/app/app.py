@@ -1,4 +1,4 @@
-import boto3, cv2, os, sys
+import boto3, cv2, os, sys, urllib.parse
 import numpy as np
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
