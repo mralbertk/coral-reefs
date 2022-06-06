@@ -17,7 +17,7 @@ env:
   IAM_ROLE: ${{ secrets.AWS_IAM_ROLE }}
   ECR_REPOSITORY: ${{ secrets.ECR_RESTORATION_LAMBDA }}
   IMAGE_TAG: dev
-  LAMBDA_FUNC: ${{ secretes.LAMBDA_IMAGE_RESTORATION }}
+  LAMBDA_FUNC: ${{ secrets.LAMBDA_IMAGE_RESTORATION }}
 
 permissions:
   id-token: write
