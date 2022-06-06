@@ -6,11 +6,11 @@ on:
     branches:
       - aws-dev
     paths:
-      - aws/workers/image-reframing/**
+      - aws/workers/image-rotate-crop/**
 
 defaults:
   run:
-    working-directory: aws/workers/image-reframing/app
+    working-directory: aws/workers/image-rotate-crop/app
 
 env:
   AWS_REGION: eu-west-1
