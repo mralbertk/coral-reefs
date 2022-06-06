@@ -59,4 +59,4 @@ jobs:
       run: |
         aws lambda update-function-code \
         --function-name ${{ env.LAMBDA_FUNC }} \
-        --image-uri {{ steps.build-image.outputs.image }}
+        --image-uri ${{ steps.build-image.outputs.image }}
