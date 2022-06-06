@@ -53,9 +53,10 @@ jobs:
         docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
         docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
         echo "Successfully pushed ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:dev"
 
     - name: Update Lambda function with latest ECR image
       run: |
         aws lambda update-function-code \
         --function-name ${{ env.LAMBDA_FUNC }} \
-        --image-uri image::${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        --image-uri {{ steps.build-image.outputs.image }}
