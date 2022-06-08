@@ -310,7 +310,8 @@ if mode == "Export Statistics":
 
     if btn_fetch:
         result_frame = pd.DataFrame(query_result)
-        result_frame.sort_values(['island', 'location', 'year'], inplace=True)
+        if result_frame:
+            result_frame.sort_values(['island', 'location', 'year'], inplace=True)
         st.dataframe(result_frame)
         result_csv = result_frame.to_csv().encode('utf-8')
         btn_load_csv = st.download_button(
