@@ -129,7 +129,7 @@ def query_rds(client, rds_db, rds_cluster, rds_credentials,
         includeResultMetadata=False
     )
 
-    return response["formattedRecords"]
+    return dict(response["formattedRecords"])
 
 
 #   /------------------------------------------------/
