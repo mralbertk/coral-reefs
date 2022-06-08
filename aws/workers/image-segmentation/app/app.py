@@ -34,7 +34,7 @@ def handler(event, context):
     s3_mask_output = f"{s3_image_output_split[0]}-mask.{s3_image_output_split[-1]}"
 
     # Some values for the DB entry based on input file name
-    db_inputs = s3_image_output_split[0].split("_")
+    db_inputs = s3_image_output_split[0].split("-")
     db_island = db_inputs[0]
     db_location = db_inputs[1]
     db_year = db_inputs[2]
