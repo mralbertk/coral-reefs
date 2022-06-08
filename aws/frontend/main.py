@@ -114,9 +114,9 @@ def query_rds(client, rds_db, rds_cluster, rds_credentials,
     """
     select_statement = f"""
     SELECT * FROM coral_coverage
-    WHERE island = '{island if island else "%"}'
-    AND location = {location if location else "%"}
-    AND year = {year if year else "%"} 
+    WHERE island LIKE '{island if island else "'%'"}'
+    AND location LIKE {location if location else "'%'"}
+    AND year LIKE {year if year else "'%'"} 
     """
 
     response = client.execute_statement(
