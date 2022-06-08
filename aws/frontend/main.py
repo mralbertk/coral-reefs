@@ -1,6 +1,7 @@
-import boto3
+import boto3, json
 import streamlit as st
 import numpy as np
+import pandas as pd
 from PIL import Image
 
 
@@ -123,10 +124,12 @@ def query_rds(client, rds_db, rds_cluster, rds_credentials,
         secretArn=rds_credentials,
         database=rds_db,
         resourceArn=rds_cluster,
-        sql=select_statement
+        sql=select_statement,
+        formatRecordsAs='JSON',
+        includeResultMetadata=False
     )
 
-    return response
+    return json.loads(response)
 
 
 #   /------------------------------------------------/
