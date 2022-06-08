@@ -1,5 +1,6 @@
-import boto3, cv2, os, sys, urllib.parse
+import boto3, cv2, os, urllib.parse
 import numpy as np
+from datetime import date
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
@@ -15,8 +16,14 @@ def handler(event, context):
     mask_path = "/tmp/output-mask.jpg"
     m_path = "/tmp/model.pth"
 
-    # Connect to S3 & configure
+    # DB connection configuration TODO: Parameterize
+    db_name = "criobe_corals"
+    db_cluster_arn = "arn:aws:rds:eu-west-1:950138825908:cluster:dsti-criobe-db"
+    db_credentials_secret_store_arn = "arn:aws:secretsmanager:eu-west-1:950138825908:secret:rds-db-credentials/cluster-AIT5MBWGBYEYUB6C6HBFTP5GR4/dsti_criobe_app-L17eZ0"
+
+    # Connect to AWS services & configure
     s3_client = boto3.client("s3")
+    rds_client = boto3.client("rds-data")
 
     # Output image name matches input name
     s3_image_output = urllib.parse.unquote_plus(
@@ -25,6 +32,12 @@ def handler(event, context):
 
     s3_image_output_split = s3_image_output.split(".")
     s3_mask_output = f"{s3_image_output_split[0]}-mask.{s3_image_output_split[-1]}"
+
+    # Some values for the DB entry based on input file name
+    db_inputs = s3_image_output_split[0].split("_")
+    db_island = db_inputs[0]
+    db_location = db_inputs[1]
+    db_year = db_inputs[2]
 
     # TODO: Parameterize output bucket
     s3_bucket_output = "criobe-images-segmented"
@@ -51,11 +64,21 @@ def handler(event, context):
 
     # Detect corals
     detector = custom_config(model_path=m_path)
-    segmentation(detector, image_path, output_path)
+    corals = segmentation(detector, image_path, output_path)
 
     # Save new image & mask to S3
     s3_client.upload_file(output_path, s3_bucket_output, s3_image_output)
     s3_client.upload_file(mask_path, s3_bucket_masks, s3_mask_output)
+
+    # Write coral coverage to RDS
+    db_write(rds_client,
+             db_island,
+             db_location,
+             db_year,
+             corals,
+             db_name,
+             db_cluster_arn,
+             db_credentials_secret_store_arn)
 
     return {
         "statusCode": 200,
@@ -66,7 +89,8 @@ def handler(event, context):
             "image-bucket": s3_bucket_output,
             "image-object": s3_image_output,
             "mask-bucket": s3_bucket_masks,
-            "mask-object": s3_mask_output
+            "mask-object": s3_mask_output,
+            "coverage": corals,
         }
     }
 
@@ -107,6 +131,11 @@ def custom_config(model_path=None):
     return predictor
 
 
+#   /------------------------------------------------/
+#  /                    Inference                   /
+# /------------------------------------------------/
+
+
 def segmentation(classifier, infile, outfile):
     """Performs coral detection on an image file.
 
@@ -130,7 +159,6 @@ def segmentation(classifier, infile, outfile):
         mask_bin = np.where(mask == False, 0, 255)
         bin_mask += mask_bin
 
-
     # Get Segmented Image
     v = Visualizer(img[:, :, ::-1], scale=1.0)
     out = v.draw_instance_predictions(output["instances"])
@@ -139,3 +167,53 @@ def segmentation(classifier, infile, outfile):
     cv2.imwrite(outfile, out.get_image()[:, :, ::-1])
     cv2.imwrite(mask_outfile, bin_mask)
 
+    # Return coral coverage
+    return round((np.count_nonzero(bin_mask) / bin_mask.size) * 100, 2)
+
+
+#   /------------------------------------------------/
+#  /              Database Output                   /
+# /------------------------------------------------/
+
+
+def db_write(client, island, location, year, coverage,
+             db, cluster, credentials):
+    """Writes coral coverage into a relational database
+
+    Args:
+        client: A boto3 rds-data client object
+        island: A string
+        location: An integer
+        year: An integer
+        coverage: A float
+        db: A database name as string
+        cluster: An AWS Aurora cluster ARN as string
+        credentials: An AWS secret store ARN as string
+
+    Returns:
+        None
+    """
+    insert_set = [
+        {"name": "island", "value": {"stringValue": island}},
+        {"name": "location", "value": {"longValue": location}},
+        {"name": "year", "value": {"longValue": year}},
+        {"name": "coverage", "value": {"doubleValue": coverage}},
+        {"name": "last_update", "value": {"stringValue": str(date.today())}}
+    ]
+
+    insert_statement = """
+        INSERT INTO coral_coverage 
+        (island, location, year, coverage, last_update)
+        VALUES(:island, :location, :year, :coverage, :last_update)
+        ON DUPLICATE KEY UPDATE 
+        coverage = VALUES(coverage),
+        last_update = VALUES(last_update); 
+    """
+
+    client.execute_statement(
+        secretArn=credentials,
+        database=db,
+        resourceArn=cluster,
+        sql=insert_statement,
+        parameters=insert_set
+    )
