@@ -111,7 +111,7 @@ def query_rds(client, rds_db, rds_cluster, rds_credentials,
         year: The year value to query as integer
 
     Returns:
-        Some annoying JSON object
+        A dictionary of records
     """
     select_statement = f"""
     SELECT * FROM coral_coverage
@@ -244,7 +244,7 @@ if mode == "View Image(s)":
 
     # Select year
     with selector_col_2:
-        s3_ys = st.selectbox("Year", list(st.session_state.galleries[s3_locs]))
+        s3_ys = st.selectbox("Year", sorted(list(st.session_state.galleries[s3_locs])))
 
     # Select version
     with selector_col_3:
@@ -287,8 +287,36 @@ if mode == "Export Statistics":
     db_cluster_arn = "arn:aws:rds:eu-west-1:950138825908:cluster:dsti-criobe-db"
     db_credentials_secret_store_arn = "arn:aws:secretsmanager:eu-west-1:950138825908:secret:rds-db-credentials/cluster-AIT5MBWGBYEYUB6C6HBFTP5GR4/dsti_criobe_app-L17eZ0"
 
-    query_result = query_rds(rds_client, db_name, db_cluster_arn, db_credentials_secret_store_arn,
-                             island="Moorea Haapiti", year=2014)
+    # Get options for selector
+    if 'galleries' not in st.session_state:  # Store in session state to avoid reloading
+        st.session_state.galleries = get_s3_object_filters(s3_bucket_reframed, s3_resource)
 
-    result_frame = pd.DataFrame(query_result)
-    st.dataframe(result_frame)
+    # Show selector
+    selector_col_1, selector_col_2 = st.columns(2)
+
+    # Select location
+    with selector_col_1:
+        s3_locs = st.selectbox("Island", sorted([*st.session_state.galleries]))
+
+    # Select year
+    with selector_col_2:
+        s3_ys = st.selectbox("Year", sorted(list(st.session_state.galleries[s3_locs])))
+
+    query_result = query_rds(rds_client, db_name, db_cluster_arn, db_credentials_secret_store_arn,
+                             island=s3_locs, year=s3_ys)
+
+    btn_fetch = st.button("GO!")
+
+    if btn_fetch:
+        result_frame = pd.DataFrame(query_result)
+        result_frame.sort_values(['island', 'location', 'year'], inplace=True)
+        st.dataframe(result_frame)
+        result_csv = result_frame.to_csv().encode('utf-8')
+        btn_load_csv = st.download_button(
+            "Download",
+            result_csv,
+            "coral_export.csv",
+            "text/csv"
+        )
+
+
