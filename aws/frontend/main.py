@@ -44,8 +44,8 @@ def get_s3_object_filters(bucket, resource):
     bucket_resource = resource.Bucket(bucket)
     bucket_objects = [s3_object.key for s3_object in bucket_resource.objects.all()]
     for bucket_object in bucket_objects:
-        this_location = bucket_object.split("-")[1]     # location
-        this_year = bucket_object.split("-")[0]         # year
+        this_location = bucket_object.split("-")[1]  # location
+        this_year = bucket_object.split("-")[0]  # year
         if this_location in available_sets.keys():
             available_sets[this_location].add(this_year)
         else:
@@ -94,6 +94,39 @@ def load_s3_image(s3_object, bucket, resource):
     file_stream = response["Body"]
     img = Image.open(file_stream)
     return np.array(img)
+
+
+def query_rds(client, rds_db, rds_cluster, rds_credentials,
+              island=None, location=None, year=None):
+    """Queries an RDS database for coral statistics.
+
+    Args:
+        client: A RDS-Data client object
+        rds_db: A RDS database as string
+        rds_cluster: A RDS cluster ARN as string
+        rds_credentials: An AWS secrets ARN as string
+        island: The island value to query as string
+        location: The location value to query as integer
+        year: The year value to query as integer
+
+    Returns:
+        Some annoying JSON object
+    """
+    select_statement = f"""
+    SELECT * FROM coral_coverage
+    WHERE island = '{island if island else "%"}'
+    AND location = {location if location else "%"}
+    AND year = {year if year else "%"} 
+    """
+
+    response = client.execute_statement(
+        secretArn=rds_credentials,
+        database=rds_db,
+        resourceArn=rds_cluster,
+        sql=select_statement
+    )
+
+    return response
 
 
 #   /------------------------------------------------/
@@ -196,7 +229,7 @@ if mode == "View Image(s)":
     s3_resource = boto3.resource("s3")
 
     # Get options for selector
-    if 'galleries' not in st.session_state:     # Store in session state to avoid reloading
+    if 'galleries' not in st.session_state:  # Store in session state to avoid reloading
         st.session_state.galleries = get_s3_object_filters(s3_bucket_reframed, s3_resource)
 
     # Show selector
@@ -242,3 +275,16 @@ if mode == "View Image(s)":
 # Get statistics mode
 if mode == "Export Statistics":
     st.header("UNDER CONSTRUCTION")
+
+    # RDS Client
+    rds_client = boto3.client("rds-data")
+
+    # RDS Configuration
+    db_name = "criobe_corals"
+    db_cluster_arn = "arn:aws:rds:eu-west-1:950138825908:cluster:dsti-criobe-db"
+    db_credentials_secret_store_arn = "arn:aws:secretsmanager:eu-west-1:950138825908:secret:rds-db-credentials/cluster-AIT5MBWGBYEYUB6C6HBFTP5GR4/dsti_criobe_app-L17eZ0"
+
+    query_result = query_rds(rds_client, db_name, db_cluster_arn, db_credentials_secret_store_arn,
+                             island="Moorea Haapiti", year=2014)
+
+    st.text(query_result)
