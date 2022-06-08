@@ -279,7 +279,8 @@ if mode == "View Image(s)":
 if mode == "Export Statistics":
     st.header("UNDER CONSTRUCTION")
 
-    # RDS Client
+    # AWS clients
+    s3_resource = boto3.resource("s3")  # For query options
     rds_client = boto3.client("rds-data")
 
     # RDS Configuration
