@@ -139,13 +139,15 @@ def custom_config(model_path=None):
 def segmentation(classifier, infile, outfile):
     """Performs coral detection on an image file.
 
+    The segmented image and the binary mask are uploaded to AWS S3.
+
     Args:
         classifier: A Detectron2 model trained for coral detection.
         infile: A path to a source image on which to perform segmentation.
         outfile: A destination path to write the segmented image to.
 
     Returns:
-        None
+        n of non-zero pixels / n of total pixels
     """
     outfile_split = outfile.split(".")
     mask_outfile = f"{''.join(outfile_split[:-1])}-mask.{outfile_split[-1]}"
