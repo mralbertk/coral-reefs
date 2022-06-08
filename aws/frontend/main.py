@@ -129,7 +129,7 @@ def query_rds(client, rds_db, rds_cluster, rds_credentials,
         includeResultMetadata=False
     )
 
-    return response
+    return response["formattedRecords"]
 
 
 #   /------------------------------------------------/
@@ -290,4 +290,5 @@ if mode == "Export Statistics":
     query_result = query_rds(rds_client, db_name, db_cluster_arn, db_credentials_secret_store_arn,
                              island="Moorea Haapiti", year=2014)
 
-    st.text(query_result)
+    result_frame = pd.DataFrame(query_result)
+    st.dataframe(result_frame)
