@@ -195,8 +195,8 @@ def db_write(client, island, location, year, coverage,
     """
     insert_set = [
         {"name": "island", "value": {"stringValue": island}},
-        {"name": "location", "value": {"longValue": location}},
-        {"name": "year", "value": {"longValue": year}},
+        {"name": "location", "value": {"longValue": int(location)}},
+        {"name": "year", "value": {"longValue": int(year)}},
         {"name": "coverage", "value": {"doubleValue": coverage}},
         {"name": "last_update", "value": {"stringValue": str(date.today())}}
     ]
