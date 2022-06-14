@@ -162,13 +162,14 @@ def segmentation(classifier, infile, outfile):
         mask_bin = np.where(mask == False, 0, 255)
         bin_mask += mask_bin
 
-    # Create a register dataset and metadata
+    # Register a dataset and metadata
     DatasetCatalog.register("my_corals", lambda: [{}])  # Oh God ...
-    img_metadata = MetadataCatalog.get("my_corals").thing_colors = [(0, 255, 0)]
+    MetadataCatalog.get("my_corals").thing_classes = ["is_coral"]
+    MetadataCatalog.get("my_corals").thing_colors = [(0, 255, 0)]
 
     # Get Segmented Image
     v = Visualizer(img[:, :, ::-1],
-                   metadata=img_metadata,
+                   metadata=MetadataCatalog.get("my_corals"),
                    instance_mode=ColorMode.SEGMENTATION,
                    scale=1.0)
     out = v.draw_instance_predictions(output["instances"])
