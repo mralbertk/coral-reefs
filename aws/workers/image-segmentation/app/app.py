@@ -5,7 +5,7 @@ from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2.utils.visualizer import Visualizer, ColorMode
-from detectron2.data import MetadataCatalog
+from detectron2.data import DatasetCatalog, MetadataCatalog
 
 
 def handler(event, context):
@@ -162,7 +162,8 @@ def segmentation(classifier, infile, outfile):
         mask_bin = np.where(mask == False, 0, 255)
         bin_mask += mask_bin
 
-    # Create a metadata catalog
+    # Create a register dataset and metadata
+    DatasetCatalog.register("my_corals", lambda: [{}])  # Oh God ...
     img_metadata = MetadataCatalog.get("my_corals").thing_colors = [(0, 255, 0)]
 
     # Get Segmented Image
