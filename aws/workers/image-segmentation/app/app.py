@@ -5,6 +5,7 @@ from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2.utils.visualizer import Visualizer
+from detectron2.data import MetadataCatalog
 
 
 def handler(event, context):
@@ -161,8 +162,14 @@ def segmentation(classifier, infile, outfile):
         mask_bin = np.where(mask == False, 0, 255)
         bin_mask += mask_bin
 
+    # Create a metadata catalog
+    img_metadata = MetadataCatalog.get("my_corals").thing_colors = [(0, 255, 0)]
+
     # Get Segmented Image
-    v = Visualizer(img[:, :, ::-1], scale=1.0)
+    v = Visualizer(img[:, :, ::-1],
+                   metadata=img_metadata,
+                   instance_mode=ColorMode.SEGMENTATION,
+                   scale=1.0)
     out = v.draw_instance_predictions(output["instances"])
 
     # Write results
